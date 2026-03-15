@@ -1,6 +1,7 @@
 name: Build APK
 
-on: [push]
+on:
+  push:
 
 jobs:
   build:
@@ -10,14 +11,20 @@ jobs:
       image: kivy/buildozer
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - name: Build with Buildozer
+      - name: Install dependencies
         run: |
-          buildozer android debug
+          pip install --upgrade pip
+          pip install buildozer cython
+
+      - name: Build APK
+        run: |
+          yes | buildozer android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: apk
+          name: rider-ai-apk
           path: bin/*.apk
