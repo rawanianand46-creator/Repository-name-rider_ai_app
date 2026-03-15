@@ -9,37 +9,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Install Java
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Install Android SDK
+      - name: Install Android SDK Command-line Tools
         run: |
           sudo apt update
-          sudo apt install -y android-sdk
+          sudo apt install -y wget unzip
+          mkdir -p $HOME/android-sdk
+          cd $HOME/android-sdk
+          wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip
+          unzip commandlinetools-linux-*.zip
+          mkdir -p cmdline-tools/latest
+          mv cmdline-tools/* cmdline-tools/latest/ || true
 
-      - name: Accept Android Licenses
+      - name: Set Android environment
         run: |
-          yes | sudo sdkmanager --licenses
+          echo "ANDROID_HOME=$HOME/android-sdk" >> $GITHUB_ENV
+          echo "$HOME/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+          echo "$HOME/android-sdk/platform-tools" >> $GITHUB_PATH
 
-      - name: Install Android Build Tools (AIDL fix)
+      - name: Accept licenses
+        run: yes | sdkmanager --licenses
+
+      - name: Install Android build tools (AIDL fix)
         run: |
-          sudo sdkmanager "platform-tools"
-          sudo sdkmanager "platforms;android-33"
-          sudo sdkmanager "build-tools;33.0.2"
+          sdkmanager "platform-tools"
+          sdkmanager "platforms;android-33"
+          sdkmanager "build-tools;33.0.2"
 
-      - name: Install Python Tools
+      - name: Install Python tools
         run: |
           pip install buildozer cython
 
       - name: Build APK
-        run: |
-          buildozer -v android debug
+        run: buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: apk
           path: bin/*.apk
+        
