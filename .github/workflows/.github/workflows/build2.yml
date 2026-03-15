@@ -1,7 +1,6 @@
 name: Build APK
 
-on:
-  push:
+on: [push]
 
 jobs:
   build:
@@ -15,10 +14,13 @@ jobs:
         run: |
           sudo apt update
           sudo apt install -y python3-pip git zip unzip openjdk-17-jdk
-
-      - name: Install Buildozer
-        run: |
           pip install buildozer cython
+
+      - name: Install Android SDK tools
+        run: |
+          sudo apt install -y android-sdk
+          yes | sdkmanager --licenses
+          sdkmanager "platform-tools" "platforms;android-33" "build-tools;33.0.2"
 
       - name: Build APK
         run: |
