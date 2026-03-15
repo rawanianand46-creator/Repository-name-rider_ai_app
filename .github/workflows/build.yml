@@ -7,30 +7,36 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Install Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          distribution: temurin
+          java-version: 17
 
-      - name: Setup Android SDK
-        uses: android-actions/setup-android@v3
-
-      - name: Accept licenses
-        run: yes | sdkmanager --licenses
-
-      - name: Install Python
+      - name: Install Android SDK
         run: |
           sudo apt update
-          sudo apt install -y python3-pip
+          sudo apt install -y android-sdk
+
+      - name: Accept Android Licenses
+        run: |
+          yes | sudo sdkmanager --licenses
+
+      - name: Install Android Build Tools (AIDL fix)
+        run: |
+          sudo sdkmanager "platform-tools"
+          sudo sdkmanager "platforms;android-33"
+          sudo sdkmanager "build-tools;33.0.2"
+
+      - name: Install Python Tools
+        run: |
           pip install buildozer cython
 
       - name: Build APK
         run: |
-          buildozer android debug
+          buildozer -v android debug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
